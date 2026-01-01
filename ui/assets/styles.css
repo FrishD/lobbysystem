@@ -437,3 +437,61 @@ label {
 .button:active {
     filter: hue-rotate(250deg);
 }
+
+.options-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    gap: 20px;
+}
+
+.option-card {
+    background-color: rgba(0, 255, 133, 0.1);
+    border: 2px solid #00FF85;
+    border-radius: 15px;
+    padding: 20px;
+    width: 250px;
+    text-align: center;
+    color: white;
+}
+
+.option-card h2 {
+    color: #00FF85;
+    margin-top: 0;
+}
+
+.lobby-input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #00FF85;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+}
+
+.team-selection {
+    margin: 10px 0;
+}
+
+.team-selection label {
+    margin: 0 10px;
+    color: white;
+}
+
+.connect-button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #00FF85;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#rampot .team-selection {
+    display: none;
+}
