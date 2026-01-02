@@ -1,167 +1,90 @@
-local CachePos = nil
-local CacheBucket = nil
-RegisterNetEvent("ns-lobbysystem:getdata", function(data, bucketCounts)
-    local theme = GetResourceKvpString('lobbytheme') or Config.DefaultTheme
-    local locale = Config.Locale
-    for i, lobby in ipairs(Config.LobbyList) do
-        if bucketCounts[lobby.Bucket] then
-            lobby.Players = bucketCounts[lobby.Bucket]
-        else
-            lobby.Players = 0
-        end
+local isInMenu = false
+
+-- Function to open the lobby menu
+function OpenLobbyMenu()
+    if isInMenu then return end
+    isInMenu = true
+
+    -- Teleport to a neutral area if configured
+    if Config.OnMenu.Teleport then
+        local playerPed = PlayerPedId()
+        CachePos = GetEntityCoords(playerPed)
+        DoScreenFadeOut(500)
+        Wait(500)
+        SetEntityCoords(playerPed, Config.OnMenu.TeleportCoords.x, Config.OnMenu.TeleportCoords.y, Config.OnMenu.TeleportCoords.z)
+        SetEntityHeading(playerPed, Config.OnMenu.TeleportCoords.w)
+        Wait(1000)
+        DoScreenFadeIn(500)
     end
-    SendNUIMessage({
-        type = 'infos',
-        steamfoto = data.avatarURL,
-        isim = data.steamName
-    })
+
+    -- Send data to NUI
+    TriggerServerEvent("ns-lobbysystem:refreshdata") -- Request fresh steam data
+end
+
+-- Event to receive data from server and show menu
+RegisterNetEvent("ns-lobbysystem:getdata", function(steamInfo)
+    local theme = GetResourceKvpString('lobbytheme') or Config.DefaultTheme
+
     SendNUIMessage({
         type = "openmenu",
-        data = Config.LobbyList,
+        data = Config,
         theme = theme,
-        locale = locale
-
+        locale = Config.Locale,
+        steaminfo = steamInfo
     })
+
+    SetNuiFocus(true, true)
 end)
 
-local function UpdateCamera()
-    if cam then
-        local ped = PlayerPedId()
-        local coords = GetEntityCoords(ped)
-        local heading = GetEntityHeading(ped)
-        local boneIndex = 39317
-        local boneCoords = GetPedBoneCoords(ped, boneIndex, -0.1, -0.5, 0.0)
-            AttachCamToEntity(cam, ped, -1.0, 1.0, 0.4, true)
-            PointCamAtCoord(cam, boneCoords.x, boneCoords.y, boneCoords.z)
+-- NUI Callback for connecting to a lobby
+RegisterNUICallback("connect", function(data, cb)
+    if not data or not data.gameMode then
+        print("Invalid data received from NUI")
+        cb('error')
+        return
     end
-end
 
-local function CreateCamera()
-    cam = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
-    SetCamFov(cam, 60.0)
-    SetCamUseShallowDofMode(cam, true)
-    SetCamNearDof(cam, 0.1)
-    SetCamFarDof(cam, 5.0)
-    SetCamDofStrength(cam, 1.0)
-    SetCamActive(cam, true)
-    RenderScriptCams(true, true, 1000, true, true)
-    CreateThread(function()
-        while DoesCamExist(cam) do
-            UpdateCamera()
-            SetUseHiDof()
-            Wait(0)  
-        end
-    end)
-end
+    TriggerServerEvent("ns-lobbysystem:connect", data)
 
-local function DestroyCamera()
-    if cam then
-        RenderScriptCams(false, true, 1000, true, true)
-        DestroyCam(cam, false)
-        cam = nil
-    end
-end
-
-RegisterNetEvent("ns-lobbysystem:openmenu", function()
-    if Config.OnMenu.Teleport then 
-        local randombucket = source..""..math.random(1111, 9999)
-        print(randombucket)
-        CachePos = GetEntityCoords(PlayerPedId())
+    -- After sending data, handle client-side effects
+    if Config.OnMenu.Teleport and CachePos then
         DoScreenFadeOut(500)
-        TriggerServerEvent("ns-lobbysystem:setbucket", randombucket)
         Wait(500)
-        CreateCamera()
-        FreezeEntityPosition(PlayerPedId(), toggle)
-        SetEntityCoords(PlayerPedId(), Config.OnMenu.TeleportCoords.x, Config.OnMenu.TeleportCoords.y, Config.OnMenu.TeleportCoords.z)
-        SetEntityHeading(PlayerPedId(), Config.OnMenu.TeleportCoords.w)
-        Wait(1000)
-        DoScreenFadeIn(500)
-        TriggerServerEvent("ns-lobbysystem:refreshdata")
-        local theme = GetResourceKvpString('lobbytheme') or Config.DefaultTheme
-        print("lua tema: "..theme)
-        local data = Config.LobbyList
-        local locale = Config.Locale
-        SetNuiFocus(true, true)
-        SendNUIMessage({
-            type = "openmenu",
-            data = data,
-            theme = theme,
-            locale = locale
-        })
-    else
-        TriggerServerEvent("ns-lobbysystem:refreshdata")
-        local theme = GetResourceKvpString('lobbytheme') or Config.DefaultTheme
-        print("lua tema: "..theme)
-        CreateCamera()
-        local data = Config.LobbyList
-        SetNuiFocus(true, true)
-        local locale = Config.Locale
-        SendNUIMessage({
-            type = "openmenu",
-            data = data,
-            theme = theme,
-            locale = locale
-        })
+        -- The server will handle teleporting to the game lobby,
+        -- so we don't need to teleport back to CachePos here.
+        -- We just need to clean up the menu state.
     end
-end)
 
-RegisterNUICallback("setbucket", function(data, cb)
-    if Config.OnMenu.Teleport then 
-        CacheBucket = data.bucket
-    else
-        TriggerServerEvent("ns-lobbysystem:setbucket", data.bucket)
-        TriggerServerEvent("ns-lobbysystem:refreshdata")
-    end
-    print(data.bucket)
+    CloseLobbyMenu()
     cb('ok')
 end)
 
-RegisterNUICallback("playAnimation", function(data, cb)
-        ExecuteCommand("e c")
-        ExecuteCommand("e "..data.anim)
-    cb('ok')
-end)
 
-RegisterNUICallback("stopAnimation", function(data, cb)
-        local playerPed = PlayerPedId()
-        ExecuteCommand("e c")
-        Wait(100)
-        ClearPedTasks(playerPed)
-        cb('ok')
-    end)
+-- Function to close the menu
+function CloseLobbyMenu()
+    if not isInMenu then return end
 
-RegisterNUICallback("close", function(data, cb)
-    if Config.OnMenu.Teleport then 
-        print(CachePos)
+    SetNuiFocus(false, false)
+    isInMenu = false
+
+    -- If teleported, return to original position
+    if Config.OnMenu.Teleport and CachePos then
         DoScreenFadeOut(500)
         Wait(500)
-        SetEntityCoords(PlayerPedId(), CachePos)
-        TriggerServerEvent("ns-lobbysystem:setbucket", CacheBucket)
-        Wait(1000)
-        CacheBucket = nil
-        DestroyCamera()
-        local playerPed = PlayerPedId()
-        Wait(10)
-        ExecuteCommand("e c")
-        SetNuiFocus(false, false)
+        SetEntityCoords(PlayerPedId(), CachePos.x, CachePos.y, CachePos.z)
         CachePos = nil
+        Wait(1000)
         DoScreenFadeIn(500)
-    else
-        DestroyCamera()
-        local playerPed = PlayerPedId()
-        Wait(10)
-        ExecuteCommand("e c")
-        SetNuiFocus(false, false)
     end
+end
+
+-- NUI Callback to close the menu
+RegisterNUICallback("close", function(data, cb)
+    CloseLobbyMenu()
     cb('ok')
 end)
 
-RegisterNUICallback("settheme", function(data, cb)
-    SetResourceKvp('lobbytheme', data.theme)
-    print("settheme "..data.theme)
-    cb('ok')
-end)
-
+-- Command to open the lobby
 RegisterCommand(Config.LobbyCommand, function()
-    TriggerEvent("ns-lobbysystem:openmenu")
+    OpenLobbyMenu()
 end)
