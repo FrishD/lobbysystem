@@ -13,57 +13,52 @@
 <body>
     <div class="root">
         <div class="lobby-Main">
-            <div class="lobby-gradient" id="lobby-gradient">
-            </div>
+            <div class="lobby-gradient" id="lobby-gradient"></div>
             <button class="button" onclick="Close()">Close</button>
-
             <div class="wavesbilmemnesi"></div>
             <div class="btn-container">
                 <label class="switch btn-color-mode-switch">
                     <input value="1" id="color_mode" name="color_mode" type="checkbox">
                     <label class="btn-color-mode-switch-inner" data-off="Light" data-on="Dark" for="color_mode"></label>
                 </label>
-                        
             </div>
             <div class="usercard">
-                <!-- <div class="usercard-steamphoto"></div> -->
                 <img class="usercard-steamphoto" src="" alt="">
-                <div class="usercard-steamname"><div class="circlething" style="margin-top: 0.88vh; animation: none; opacity: 1;"><div class="circlething-inner"></div> </div>Elyasinyooo</div>
+                <div class="usercard-steamname"><div class="circlething" style="margin-top: 0.88vh; animation: none; opacity: 1;"><div class="circlething-inner"></div> </div><span></span></div>
             </div>
 
-            <div class="lobbies" id="lobbies">
-                <div class="lobby">
-                    <div class="icerikler">
-                        <div class="lobby-things">
-                            <div class="lobby-players"><div class="circlething"><div class="circlething-inner"></div></div>125 Players</div>
-                            <div class="lobby-name">Freeroam Area</div>
-                            <div class="lobby-description">Freeroam area for sikim sonic things</div>
-                            <div class="lobby-button"><div class="lobby-button-icon"><i class="fa-solid fa-link"></i></div>Connect</div>
+            <div id="lobby-selection">
+                <div class="lobbies" id="lobby-list">
+                    <!-- Dynamic lobby list appears here -->
+                </div>
+                <div class="create-lobby-container">
+                    <input type="text" id="lobby-name-input" placeholder="Enter Lobby Name...">
+                    <select id="lobby-type-select">
+                        <option value="ramp">Ramp</option>
+                        <option value="pvp">PVP</option>
+                    </select>
+                    <button id="create-lobby-btn">Create Lobby</button>
+                </div>
+            </div>
+
+            <div id="lobby-dashboard" style="display: none;">
+                <h2 id="dashboard-lobby-name">Lobby Name</h2>
+                <div class="dashboard-columns">
+                    <div class="player-list-container">
+                        <h3>Players</h3>
+                        <ul id="player-list">
+                            <!-- Player list will be populated here -->
+                        </ul>
+                    </div>
+                    <div class="game-options-container">
+                        <h3>Game Options</h3>
+                        <div id="game-options">
+                            <!-- Game-specific options will appear here -->
                         </div>
-                        <div class="lobby-hover-gradient"></div>
-                        <div class="lobby-darker-image"></div>
+                        <button id="start-game-btn">Start Game</button>
                     </div>
                 </div>
-                <div class="lobby">
-                    <div class="lobby-things">
-                        <div class="lobby-players"><div class="circlething"><div class="circlething-inner"></div></div>125 Players</div>
-                        <div class="lobby-name">Freeroam Area</div>
-                        <div class="lobby-description">Freeroam area for sikim sonic things</div>
-                        <div class="lobby-button"><div class="lobby-button-icon"><i class="fa-solid fa-link"></i></div>Connect</div>
-                    </div>
-                    <div class="lobby-hover-gradient"></div>
-                    <div class="lobby-darker-image"></div>
-                </div>
-                <div class="lobby">
-                    <div class="lobby-things">
-                        <div class="lobby-players"><div class="circlething"><div class="circlething-inner"></div></div>125 Players</div>
-                        <div class="lobby-name">Freeroam Area</div>
-                        <div class="lobby-description">Freeroam area for sikim sonic things</div>
-                        <div class="lobby-button"><div class="lobby-button-icon"><i class="fa-solid fa-link"></i></div>Connect</div>
-                    </div>
-                    <div class="lobby-hover-gradient"></div>
-                    <div class="lobby-darker-image"></div>
-                </div>
+                <button id="back-to-lobbies-btn">Back to Lobbies</button>
             </div>
         </div>
     </div>
