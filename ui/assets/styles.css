@@ -438,60 +438,82 @@ label {
     filter: hue-rotate(250deg);
 }
 
-.options-container {
+.create-lobby-container {
     position: absolute;
-    top: 50%;
+    bottom: 5vh;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
+    width: 60%;
     display: flex;
-    gap: 20px;
-}
-
-.option-card {
-    background-color: rgba(0, 255, 133, 0.1);
-    border: 2px solid #00FF85;
+    gap: 15px;
+    padding: 15px;
+    background-color: rgba(0,0,0,0.2);
     border-radius: 15px;
-    padding: 20px;
-    width: 250px;
-    text-align: center;
-    color: white;
 }
 
-.option-card h2 {
-    color: #00FF85;
-    margin-top: 0;
-}
-
-.lobby-input {
-    width: 100%;
+#lobby-name-input {
+    flex-grow: 1;
     padding: 10px;
-    margin: 10px 0;
     border-radius: 5px;
     border: 1px solid #00FF85;
     background-color: rgba(0, 0, 0, 0.5);
     color: white;
 }
 
-.team-selection {
-    margin: 10px 0;
-}
-
-.team-selection label {
-    margin: 0 10px;
-    color: white;
-}
-
-.connect-button {
-    width: 100%;
-    padding: 10px;
+#create-lobby-btn {
+    padding: 10px 20px;
     border: none;
     border-radius: 5px;
     background-color: #00FF85;
     color: black;
     font-weight: bold;
     cursor: pointer;
+    transition: background-color 0.2s;
 }
 
-#rampot .team-selection {
-    display: none;
+#create-lobby-btn:hover {
+    background-color: #20ff93;
+}
+
+#lobby-dashboard {
+    padding: 20px;
+}
+
+.dashboard-columns {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.player-list-container, .game-options-container {
+    background-color: rgba(0,0,0,0.2);
+    padding: 15px;
+    border-radius: 10px;
+    width: 48%;
+}
+
+#player-list {
+    list-style: none;
+    padding: 0;
+}
+
+#player-list li {
+    padding: 8px;
+    background-color: rgba(0, 255, 133, 0.1);
+    border-bottom: 1px solid #00FF85;
+}
+
+#game-options select, #game-options label {
+    display: block;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+#game-options select {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #00FF85;
+    background-color: #1a1a1a;
+    color: white;
 }

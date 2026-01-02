@@ -1,71 +1,37 @@
 Config = {}
 
-Config.steamAPIKey = ""
-
 Config.DefaultTheme = "dark"  -- "light" or "dark"
 
 Config.LobbyCommand = "lobby"
 
+-- Bucket management for Ramp lobbies
+Config.AvailableRampBuckets = { "ramp1", "ramp2", "ramp3", "ramp4", "ramp5" }
+Config.UsedRampBuckets = {}
+
+-- OnMenu teleport location (optional)
 Config.OnMenu = {
     Teleport = true,
     TeleportCoords = vec4(2178.21, 2913.26, -84.80, 66.19)
 }
 
-Config.LobbyList = {
-    [1] = {
-        Label = "Main Lobby", --Main Text
-        Desc  = "Main place to meet everyone.", -- Bottom Desription 
-        PrimaryColor = "#23c27a",
-        SecondaryColor = "#a6fff3",
-        Image = "https://nexusdev.online/assets/img/nexusreklam.png",
-        Animation = "wait13",
-        Bucket = 0
+-- Game mode coordinates
+Config.RampCoordinates = { x = 1100.0, y = 220.0, z = -50.0 }
+
+Config.PVPMaps = {
+    zakim = {
+        TEAM1 = { x = -75.0, y = -820.0, z = 326.0 },
+        TEAM2 = { x = -150.0, y = -820.0, z = 326.0 }
     },
-    [2] = {
-        Label = "Drift Lobby",
-        Desc  = "Freeroam area for drifting enthusiasts.",
-        PrimaryColor = "#fc7303",
-        SecondaryColor = "#fafafa",
-        Image = "https://nexusdev.online/assets/img/nexusreklam.png",
-        Animation = "pointpose",
-        Bucket = 2
-    },
-    [3] = {
-        Label = "PVP Lobby",
-        Desc  = "Competitive combat zone for player versus player.",
-        PrimaryColor = "#ff0000",
-        SecondaryColor = "#000000",
-        Image = "https://nexusdev.online/assets/img/nexusreklam.png",
-        Animation = "mafia",
-        Bucket = 3
-    },
-    [4] = {
-        Label = "Racing Lobby",
-        Desc  = "Race track for racing enthusiasts.",
-        PrimaryColor = "#5a36a3",
-        SecondaryColor = "#1f2159",
-        Image = "https://nexusdev.online/assets/img/nexusreklam.png",
-        Animation = "cashcase2",
-        Bucket = 4
-    },
-    [5] = {
-        Label = "Flight Lobby",
-        Desc  = "Fly planes, helicopters, and other aircraft.",
-        PrimaryColor = "#05faee",
-        SecondaryColor = "#b3b2ab",
-        Image = "https://nexusdev.online/assets/img/nexusreklam.png",
-        Animation = "tpose",
-        Bucket = 5
-    },
-    [6] = {
-        Label = "RP Lobby 1",
-        Desc  = "Roleplay area for immersive experiences.",
-        PrimaryColor = "#23c27a",
-        SecondaryColor = "#a6fff3",
-        Image = "https://nexusdev.online/assets/img/nexusreklam.png",
-        Animation = "army2l",
-        Bucket = 6
+    zaira = {
+        TEAM1 = { x = 290.0, y = -970.0, z = 29.0 },
+        TEAM2 = { x = 260.0, y = -970.0, z = 29.0 }
     }
+}
+
+Config.Weapons = {
+    "WEAPON_PISTOL",
+    "WEAPON_SMG",
+    "WEAPON_RIFLE"
 }
 
 Config.Locale = {

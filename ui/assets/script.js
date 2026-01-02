@@ -1,25 +1,22 @@
 var open = false;
+var currentLobby = null;
+window.lastWeaponData = [];
 
 window.addEventListener('message', function(event) {
     if (event.data.type === 'openmenu') {
         open = true;
         $(".root").css("display", "block");
-        const checkbox = document.getElementById('color_mode');
-        if (event.data.theme === 'dark') {
-            checkbox.checked = true;
-            applyDarkTheme();
-        } else {
-            checkbox.checked = false;
-            applyLightTheme();
-        }
+        window.lastWeaponData = event.data.weapons;
+        updateLobbyList(event.data.lobbies);
+    } else if (event.data.type === 'showDashboard') {
+        currentLobby = event.data.lobby;
+        showDashboard(currentLobby);
     }
 });
 
 document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
-        if (open) {
-            Close();
-        }
+        if (open) Close();
     }
 });
 
@@ -27,7 +24,6 @@ function Close() {
     if (open) {
         open = false;
         $(".root").css("display", "none");
-        saveCurrentTheme();
         fetch('https://ns-lobbysystem/close', {
             method: 'POST',
             body: JSON.stringify({})
@@ -35,98 +31,111 @@ function Close() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const options = document.querySelectorAll('.option-card');
-    options.forEach(option => {
-        const connectButton = option.querySelector('.connect-button');
-        const lobbyInput = option.querySelector('.lobby-input');
-        const teamSelection = option.querySelector('.team-selection');
-
-        option.addEventListener('click', () => {
-            if (option.id === 'zaira' || option.id === 'zakim') {
-                if (teamSelection) teamSelection.style.display = 'block';
-            } else {
-                if (teamSelection) teamSelection.style.display = 'none';
-            }
-        });
-
-        connectButton.addEventListener('click', () => {
-            const lobbyNumber = lobbyInput.value;
-            let team = null;
-
-            if (!lobbyNumber) {
-                alert("Please enter a lobby number.");
-                return;
-            }
-
-            if (teamSelection && teamSelection.style.display !== 'none') {
-                const selectedTeam = teamSelection.querySelector('input:checked');
-                if (!selectedTeam) {
-                    alert("Please select a team.");
-                    return;
-                }
-                team = selectedTeam.value;
-            }
-
-            fetch('https://ns-lobbysystem/connect', {
+$(document).ready(function() {
+    $("#create-lobby-btn").click(function() {
+        const lobbyName = $("#lobby-name-input").val();
+        const lobbyType = $("#lobby-type-select").val();
+        if (lobbyName) {
+            fetch('https://ns-lobbysystem/createLobby', {
                 method: 'POST',
-                body: JSON.stringify({
-                    option: option.id,
-                    lobby: lobbyNumber,
-                    team: team
-                })
+                body: JSON.stringify({ name: lobbyName, type: lobbyType })
             });
+        }
+    });
+
+    $(document).on('click', '.join-lobby-btn', function() {
+        const lobbyId = $(this).data('lobby-id');
+        fetch('https://ns-lobbysystem/joinLobby', {
+            method: 'POST',
+            body: JSON.stringify({ id: lobbyId })
         });
     });
 
-    const checkbox = document.getElementById('color_mode');
-    checkbox.addEventListener('change', function () {
-        if (this.checked) {
-            applyDarkTheme();
-        } else {
-            applyLightTheme();
-        }
+    $("#back-to-lobbies-btn").click(function() {
+        $("#lobby-dashboard").hide();
+        $("#lobby-selection").show();
+        // Optionally, tell the server the player left the lobby view
     });
 
-    // Initial state setup
-    document.querySelectorAll('.team-selection').forEach(ts => {
-        const parentId = ts.closest('.option-card').id;
-        if (parentId !== 'zaira' && parentId !== 'zakim') {
-            ts.style.display = 'none';
+    $("#start-game-btn").click(function() {
+        const gameOptions = {};
+        if (currentLobby.type === 'ramp') {
+            gameOptions.gameType = 'ramp';
+        } else if (currentLobby.type === 'pvp') {
+            gameOptions.gameType = 'pvp';
+            gameOptions.map = $("#pvp-map-select").val();
+            gameOptions.weapon = $("#weapon-select").val();
+            gameOptions.team = $("input[name='team']:checked").val();
         }
+
+        fetch('https://ns-lobbysystem/startGame', {
+            method: 'POST',
+            body: JSON.stringify(gameOptions)
+        });
     });
 });
 
-
-function saveCurrentTheme() {
-    const checkbox = document.getElementById('color_mode');
-    const theme = checkbox.checked ? 'dark' : 'light';
-    fetch('https://ns-lobbysystem/settheme', {
-        method: 'POST',
-        body: JSON.stringify({ theme })
-    });
-}
-
-window.addEventListener('message', function(event) {
-    if (event.data.type === 'infos') {
-        const avatarURL = event.data.steamfoto;
-        const steamName = event.data.isim;
-        console.log(avatarURL, steamName);
-        $(".usercard-steamname").html('<div class="circlething" style="margin-top: 0.88vh; animation: none !important; opacity: 1;"><div class="circlething-inner"></div> </div>' + steamName);
-        $(".usercard-steamphoto").attr("src", avatarURL);
+function updateLobbyList(lobbies) {
+    const lobbyContainer = $('#lobby-list');
+    lobbyContainer.empty();
+    if (lobbies && lobbies.length > 0) {
+        lobbies.forEach(lobby => {
+            const lobbyElement = `
+                <div class="lobby" style="border-color: #00FF85;">
+                    <div class="lobby-things">
+                        <div class="lobby-players">
+                            <div class="circlething" style="box-shadow: #00FF85 0px 0px 20px 0px;"><div class="circlething-inner"></div></div>
+                            ${lobby.players} Players
+                        </div>
+                        <div class="lobby-name" style="color: #00FF85;">${lobby.name} (${lobby.type})</div>
+                        <div class="lobby-description">${lobby.status}</div>
+                        <div class="lobby-button join-lobby-btn" style="color: #1a1a1a; background-color: #00FF85;" data-lobby-id="${lobby.id}">
+                            Connect
+                        </div>
+                    </div>
+                </div>`;
+            lobbyContainer.append(lobbyElement);
+        });
+    } else {
+        lobbyContainer.append('<p style="text-align: center; width: 100%;">No active lobbies. Create one!</p>');
     }
-});
-
-function applyDarkTheme() {
-    $(".lobby-gradient").css("background", "linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgb(14, 14, 14) 100%)");
-    $(".usercard").css("background", "rgb(29, 29, 29)");
-    $(".usercard").css("color", "white");
-    $(".usercard").css("box-shadow", "0px 0px 88px -35px rgba(0,0,0,0.75)");
 }
 
-function applyLightTheme() {
-    $(".lobby-gradient").css("background", "linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgb(255, 255, 255) 100%)");
-    $(".usercard").css("background", "white");
-    $(".usercard").css("color", "black");
-    $(".usercard").css("box-shadow", "none");
+function showDashboard(lobby) {
+    $("#lobby-selection").hide();
+    $("#lobby-dashboard").show();
+    $("#dashboard-lobby-name").text(lobby.name);
+    updatePlayerList(lobby.players);
+
+    const gameOptions = $("#game-options");
+    gameOptions.empty();
+
+    if (lobby.type === 'ramp') {
+        // "Start Game" button is already there, no specific options needed
+    } else if (lobby.type === 'pvp') {
+        const weaponOptions = window.lastWeaponData.map(weapon => `<option value="${weapon}">${weapon.replace('WEAPON_', '')}</option>`).join('');
+        gameOptions.append(`
+            <select id="pvp-map-select">
+                <option value="zakim">PVP Zakim</option>
+                <option value="zaira">PVP Zaira</option>
+            </select>
+            <select id="weapon-select">
+                ${weaponOptions}
+            </select>
+            <div>
+                <label><input type="radio" name="team" value="TEAM1"> Team 1</label>
+                <label><input type="radio" name="team" value="TEAM2"> Team 2</label>
+            </div>
+        `);
+    }
+}
+
+function updatePlayerList(players) {
+    const playerList = $("#player-list");
+    playerList.empty();
+    if (players && players.length > 0) {
+        players.forEach(player => {
+            playerList.append(`<li>${player.name}</li>`);
+        });
+    }
 }
