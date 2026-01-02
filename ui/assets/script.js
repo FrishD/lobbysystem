@@ -1,157 +1,116 @@
-var open = false;
-var hover = false;
-var isPlaying = false;
-var debounceTimer;
 
-window.addEventListener('message', function(event) {
-    if (event.data.type === 'openmenu') {
-        open = true;
-        $(".root").css("display", "block");
-        openLobbyMenu(event.data.data, event.data.theme, event.data.locale);
+$(document).ready(function () {
+    let currentGamedata = null;
+    let selectedGameMode = null;
+
+    // Function to switch between views
+    function switchView(viewId) {
+        $('.view').removeClass('active');
+        $('#' + viewId).addClass('active');
     }
-});
 
-document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-        if (open) {
-            Close()
-        } 
-    }
-});
-
-function Close() {
-    if (open) {
-        open = false;
-        $(".root").css("display", "none");
-        stopAnimation();
-        saveCurrentTheme();
-        fetch('https://ns-lobbysystem/close', {
-            method: 'POST',
-            body: JSON.stringify({})
-        });
-    } 
-}
-
-var currentPlayingLobby = null;
-
-function openLobbyMenu(lobbies, Theme, Locale) {
-    const lobbyContainer = document.getElementById('lobbies');
-    lobbyContainer.innerHTML = ''; 
-    const label = document.querySelector('.btn-color-mode-switch-inner');
-    const button = document.querySelector('.button');
-    console.log(Locale)
-    label.dataset.off = Locale.light;
-    label.dataset.on = Locale.dark;
-    button.innerHTML = Locale.close
-    lobbies.forEach(lobby => {
-        const lobbyElement = document.createElement('div');
-        lobbyElement.classList.add('lobby');
-        lobbyElement.style.backgroundImage = `url('${lobby.Image}')`;
-        lobbyElement.style.backgroundSize = 'cover'; 
-        lobbyElement.style.backgroundPosition = 'center';
-        lobbyElement.style.borderColor = lobby.PrimaryColor;
-
-        lobbyElement.innerHTML = `
-            <div class="lobby-things">
-                <div class="lobby-players">
-                    <div class="circlething" style="box-shadow: #00FF85 0px 0px 20px 0px;">
-                        <div class="circlething-inner"></div>
-                    </div>${lobby.Players} ${Locale.players}
+    // Populate Game Modes
+    function populateGameModes(gameModes) {
+        const container = $('#game-modes-container');
+        container.empty();
+        for (const [key, mode] of Object.entries(gameModes)) {
+            const card = $(`
+                <div class="game-mode-card" data-mode="${key}">
+                    <h3>${mode.Label}</h3>
+                    <p>${mode.Description}</p>
                 </div>
-                <div class="lobby-name" style="color: ${lobby.PrimaryColor};">${lobby.Label}</div>
-                <div class="lobby-description">${lobby.Desc}</div>
-                <div class="lobby-button"style="color: ${lobby.SecondaryColor}; background-color: ${lobby.PrimaryColor};" onclick="connectToLobby(${lobby.Bucket})">
-                    <div class="lobby-button-icon" style="background: linear-gradient(to bottom, ${lobby.SecondaryColor} 0%, ${lobby.PrimaryColor} 77%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"><i class="fa-solid fa-link"></i></div>${Locale.connect}
-                </div>
-            </div>
-            <div class="lobby-hover-gradient" style="background: linear-gradient(rgba(2, 0, 36, 0) 0%, ${lobby.PrimaryColor} 100%);"></div> 
-            <div class="lobby-darker-image"></div>
-        `;
-
-        lobbyElement.addEventListener('mouseenter', () => {
-            playAnimation(lobby.Animation);
-        });
-        lobbyContainer.appendChild(lobbyElement);
-    });
-    const checkbox = document.getElementById('color_mode');
-    console.log(Theme)
-    if (Theme === 'dark') {
-        checkbox.checked = true;
-        applyDarkTheme();
-    } else {
-        checkbox.checked = false;
-        applyLightTheme();
+            `);
+            card.on('click', function() {
+                selectedGameMode = key;
+                prepareLobbyDetails(key, mode);
+                switchView('lobby-details');
+            });
+            container.append(card);
+        }
     }
 
-    checkbox.addEventListener('change', function () {
-        if (this.checked) {
-            applyDarkTheme();
+    // Prepare Lobby Details View
+    function prepareLobbyDetails(modeKey, modeData) {
+        $('#lobby-title').text(`${modeData.Label} Lobby`);
+
+        // Handle Team Selection
+        if (modeData.Settings.TeamSelection) {
+            $('#team-selection').show();
         } else {
-            applyLightTheme();
+            $('#team-selection').hide();
+        }
+
+        // Handle Weapon Selection
+        const weaponSelect = $('#weapon-select');
+        if (modeData.Settings.WeaponSelection) {
+            $('#weapon-selection').show();
+            weaponSelect.empty();
+            modeData.Settings.Weapons.forEach(weapon => {
+                weaponSelect.append(`<option value="${weapon.hash}">${weapon.name}</option>`);
+            });
+        } else {
+            $('#weapon-selection').hide();
+        }
+
+        // For Ramps, Lobby ID is not needed for bucket selection server-side
+        if (modeKey === 'Ramps') {
+            $('#lobby-id-input').attr('placeholder', 'Enter a lobby number (optional)');
+        } else {
+            $('#lobby-id-input').attr('placeholder', 'Lobby ID');
+        }
+    }
+
+    // NUI Message Listener
+    window.addEventListener('message', function(event) {
+        if (event.data.type === 'openmenu') {
+            currentGamedata = event.data.data;
+            populateGameModes(currentGamedata.GameModes);
+            if (event.data.steaminfo) {
+                 $(".usercard-steamname").html('<div class="circlething" style="margin-top: 0.88vh; animation: none !important; opacity: 1;"><div class="circlething-inner"></div> </div>' + event.data.steaminfo.isim);
+                 $(".usercard-steamphoto").attr("src", event.data.steaminfo.steamfoto);
+            }
+            $('.root').fadeIn(500);
+            switchView('game-mode-selection');
         }
     });
-}
 
-function debounce(func, delay) {
-    clearTimeout(debounceTimer); 
-    debounceTimer = setTimeout(func, delay);
-}
-
-function playAnimation(anim) {
-    fetch('https://ns-lobbysystem/playAnimation', {  
-        method: 'POST',
-        body: JSON.stringify({anim})
-    }).catch((error) => {
-        console.error('Error:', error);
+    // Back Button
+    $('#back-button').on('click', function() {
+        switchView('game-mode-selection');
+        $('#lobby-id-input').val(''); // Clear input
     });
-}
 
-function stopAnimation() {
-    fetch('https://ns-lobbysystem/stopAnimation', {  
-        method: 'POST',
-        body: JSON.stringify({})
-    });
-}
-
-function connectToLobby(bucket) {
-    console.log(bucket);
-    fetch('https://ns-lobbysystem/setbucket', {  
-        method: 'POST',
-        body: JSON.stringify({bucket})
-    });
-}
-
-function saveCurrentTheme() {
-    const checkbox = document.getElementById('color_mode');
-    const theme = checkbox.checked ? 'dark' : 'light';
-    fetch('https://ns-lobbysystem/settheme', {  
-        method: 'POST',
-        body: JSON.stringify({ theme })
-    });
-}
-
-window.addEventListener('message', function(event) {
-    if (event.data.type === 'infos') {
-        const avatarURL = event.data.steamfoto;
-        const steamName = event.data.isim;
-        console.log(avatarURL, steamName);
-        $(".usercard-steamname").html('<div class="circlething" style="margin-top: 0.88vh; animation: none !important; opacity: 1;"><div class="circlething-inner"></div> </div>' + steamName);
-        $(".usercard-steamphoto").attr("src", avatarURL);
+    // Close Button & Escape Key
+    function closeMenu() {
+        $('.root').fadeOut(500);
+        $.post(`https://ns-lobbysystem/close`, JSON.stringify({}));
     }
+
+    $('#close-button').on('click', closeMenu);
+    $(document).on('keydown', function(e) {
+        if (e.key === "Escape") {
+            closeMenu();
+        }
+    });
+
+    // Connect Button
+    $('#connect-button').on('click', function() {
+        const lobbyId = $('#lobby-id-input').val();
+
+        if (selectedGameMode !== 'Ramps' && (!lobbyId || isNaN(lobbyId) || lobbyId.trim() === '')) {
+            // Simple validation: Ensure lobbyId is a number for modes that require it.
+            console.log("Invalid Lobby ID");
+            return;
+        }
+
+        const connectionData = {
+            gameMode: selectedGameMode,
+            lobbyId: parseInt(lobbyId) || null, // Send null if empty/invalid
+            team: $('input[name="team"]:checked').val(),
+            weapon: $('#weapon-select').val()
+        };
+
+        $.post(`https://ns-lobbysystem/connect`, JSON.stringify(connectionData));
+        closeMenu();
+    });
 });
-
-
-
-function applyDarkTheme() {
-    $(".lobby-gradient").css("background", "linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgb(14, 14, 14) 100%)");
-    $(".usercard").css("background", "rgb(29, 29, 29)");
-    $(".usercard").css("color", "white");
-    $(".usercard").css("box-shadow", "0px 0px 88px -35px rgba(0,0,0,0.75)");
-}
-
-function applyLightTheme() {
-    $(".lobby-gradient").css("background", "linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgb(255, 255, 255) 100%)");
-    $(".usercard").css("background", "white");
-    $(".usercard").css("color", "black");
-    $(".usercard").css("box-shadow", "none");
-}

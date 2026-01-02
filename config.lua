@@ -1,71 +1,74 @@
 Config = {}
 
-Config.steamAPIKey = ""
-
-Config.DefaultTheme = "dark"  -- "light" or "dark"
+Config.steamAPIKey = "" -- Make sure to set your Steam API Key here.
 
 Config.LobbyCommand = "lobby"
+
+Config.DefaultTheme = "dark" -- "light" or "dark"
+
+Config.GameModes = {
+    Zaira = {
+        Label = "Zaira",
+        Image = "https://nexusdev.online/assets/img/nexusreklam.png", -- Placeholder Image
+        Description = "Competitive PVP mode.",
+        Settings = {
+            TeamSelection = true,
+            WeaponSelection = true,
+            Weapons = {
+                { name = "Pistol", hash = "WEAPON_PISTOL" },
+                { name = "Combat Pistol", hash = "WEAPON_COMBATPISTOL" },
+                { name = "SMG", hash = "WEAPON_SMG" },
+            },
+            BucketBase = 1000, -- Lobbies will be BucketBase + LobbyID
+            TeleportCoords = {
+                Team1 = vector3(-234.34, -1620.17, 34.82),
+                Team2 = vector3(-204.38, -1604.29, 34.82)
+            }
+        }
+    },
+    Zakim = {
+        Label = "Zakim",
+        Image = "https://nexusdev.online/assets/img/nexusreklam.png", -- Placeholder Image
+        Description = "Team-based objective mode.",
+        Settings = {
+            TeamSelection = true,
+            WeaponSelection = true,
+            Weapons = {
+                { name = "Carbine Rifle", hash = "WEAPON_CARBINERIFLE" },
+                { name = "Assault Rifle", hash = "WEAPON_ASSAULTRIFLE" },
+                { name = "Sniper Rifle", hash = "WEAPON_SNIPERRIFLE" },
+            },
+            BucketBase = 2000, -- Lobbies will be BucketBase + LobbyID
+            TeleportCoords = {
+                Team1 = vector3(484.51, -1533.15, 29.28),
+                Team2 = vector3(451.8, -1523.95, 29.28)
+            }
+        }
+    },
+    Ramps = {
+        Label = "Ramps",
+        Image = "https://nexusdev.online/assets/img/nexusreklam.png", -- Placeholder Image
+        Description = "Freestyle ramp jumping.",
+        Settings = {
+            TeamSelection = false,
+            WeaponSelection = false,
+            -- For Ramps, the server will automatically assign a bucket from this list.
+            -- The lobby ID from the UI is just for display/future use and doesn't select the bucket.
+            Lobbies = {
+                { icon = '🛹', label = 'Skate Ramp', coords = vector3(-958.58, -780.19, 17.83) },
+                { icon = '🏀', label = 'Basketball Ramp', coords = vector3(-921.04, -744.49, 19.89) },
+                { icon = '🆕', label = 'New Ramps 1', coords = vector3(-2563.11, -1451.54, 36.96) },
+            },
+            -- Each lobby above will be assigned a unique bucket by the server logic.
+            -- We can define a range or let the server manage it dynamically.
+            BucketPool = { 3001, 3002, 3003, 3004, 3005 } -- Example pool of available buckets
+        }
+    }
+}
 
 Config.OnMenu = {
     Teleport = true,
     TeleportCoords = vec4(2178.21, 2913.26, -84.80, 66.19)
-}
-
-Config.LobbyList = {
-    [1] = {
-        Label = "Main Lobby", --Main Text
-        Desc  = "Main place to meet everyone.", -- Bottom Desription 
-        PrimaryColor = "#23c27a",
-        SecondaryColor = "#a6fff3",
-        Image = "https://nexusdev.online/assets/img/nexusreklam.png",
-        Animation = "wait13",
-        Bucket = 0
-    },
-    [2] = {
-        Label = "Drift Lobby",
-        Desc  = "Freeroam area for drifting enthusiasts.",
-        PrimaryColor = "#fc7303",
-        SecondaryColor = "#fafafa",
-        Image = "https://nexusdev.online/assets/img/nexusreklam.png",
-        Animation = "pointpose",
-        Bucket = 2
-    },
-    [3] = {
-        Label = "PVP Lobby",
-        Desc  = "Competitive combat zone for player versus player.",
-        PrimaryColor = "#ff0000",
-        SecondaryColor = "#000000",
-        Image = "https://nexusdev.online/assets/img/nexusreklam.png",
-        Animation = "mafia",
-        Bucket = 3
-    },
-    [4] = {
-        Label = "Racing Lobby",
-        Desc  = "Race track for racing enthusiasts.",
-        PrimaryColor = "#5a36a3",
-        SecondaryColor = "#1f2159",
-        Image = "https://nexusdev.online/assets/img/nexusreklam.png",
-        Animation = "cashcase2",
-        Bucket = 4
-    },
-    [5] = {
-        Label = "Flight Lobby",
-        Desc  = "Fly planes, helicopters, and other aircraft.",
-        PrimaryColor = "#05faee",
-        SecondaryColor = "#b3b2ab",
-        Image = "https://nexusdev.online/assets/img/nexusreklam.png",
-        Animation = "tpose",
-        Bucket = 5
-    },
-    [6] = {
-        Label = "RP Lobby 1",
-        Desc  = "Roleplay area for immersive experiences.",
-        PrimaryColor = "#23c27a",
-        SecondaryColor = "#a6fff3",
-        Image = "https://nexusdev.online/assets/img/nexusreklam.png",
-        Animation = "army2l",
-        Bucket = 6
-    }
 }
 
 Config.Locale = {
@@ -73,5 +76,9 @@ Config.Locale = {
     connect = "Connect",
     light = "Light",
     dark = "Dark",
-    close = "Close"
+    close = "Close",
+    lobby_id = "Lobby ID",
+    team_1 = "Team 1",
+    team_2 = "Team 2",
+    select_weapon = "Select Weapon"
 }
